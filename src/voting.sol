@@ -4,15 +4,20 @@ pragma solidity ^0.8.0;
 contract Voting {
     address public admin;
 
-    enum Phase { Registering, Voting, Ended }
+    enum Phase {
+        Registering,
+        Voting,
+        Ended
+    }
+
     Phase public currentPhase;
 
-    uint public votingEndTime;
+    uint256 public votingEndTime;
 
     struct Candidate {
         string name;
         string department;
-        uint voteCount;
+        uint256 voteCount;
     }
 
     mapping(address => string) public studentDepartment;
@@ -21,8 +26,8 @@ contract Voting {
 
     event VoterRegistered(address voter, string department);
     event CandidateAdded(string name, string department);
-    event VoteCasted(address voter, string department, uint candidateIndex);
-    event VotingStarted(uint endTime);
+    event VoteCasted(address voter, string department, uint256 candidateIndex);
+    event VotingStarted(uint256 endTime);
 
     constructor() {
         admin = msg.sender;
@@ -39,7 +44,7 @@ contract Voting {
         _;
     }
 
-    function setPhase(uint phase, uint durationInMinutes) public onlyAdmin {
+    function setPhase(uint256 phase, uint256 durationInMinutes) public onlyAdmin {
         currentPhase = Phase(phase);
 
         // If entering Voting phase, set end time
@@ -60,7 +65,7 @@ contract Voting {
         emit CandidateAdded(_name, _department);
     }
 
-    function vote(uint _candidateIndex) public inPhase(Phase.Voting) {
+    function vote(uint256 _candidateIndex) public inPhase(Phase.Voting) {
         require(block.timestamp <= votingEndTime, "Voting period has ended");
         require(!hasVoted[msg.sender], "Already voted");
 
