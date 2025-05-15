@@ -1,11 +1,14 @@
+// src/components/pages/VoterPanel.js
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../constants";
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../../constants";
+import { Container, Card, Form, Button, Alert } from "react-bootstrap";
 
 const VoterPanel = () => {
   const [department, setDepartment] = useState("");
   const [registered, setRegistered] = useState(false);
   const [currentPhase, setCurrentPhase] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     checkRegistration();
@@ -27,6 +30,7 @@ const VoterPanel = () => {
       }
     } catch (err) {
       console.error("Error checking registration:", err);
+      setError("Failed to check registration status.");
     }
   };
 
@@ -38,6 +42,7 @@ const VoterPanel = () => {
       setCurrentPhase(Number(phase));
     } catch (err) {
       console.error("Error fetching phase:", err);
+      setError("Failed to fetch current phase.");
     }
   };
 
@@ -50,38 +55,62 @@ const VoterPanel = () => {
       const tx = await contract.registerVoter(department);
       await tx.wait();
 
-      alert("Voter registered successfully!");
+      alert("✅ Voter registered successfully!");
       setRegistered(true);
     } catch (err) {
       console.error("Registration error:", err);
-      alert("Voter registration failed.");
+      alert("❌ Voter registration failed.");
+    }
+  };
+
+  const getPhaseLabel = () => {
+    switch (currentPhase) {
+      case 0:
+        return "📝 Registering";
+      case 1:
+        return "🗳️ Voting";
+      case 2:
+        return "✅ Ended";
+      default:
+        return "❓ Unknown";
     }
   };
 
   return (
-    <div style={{ marginTop: "2rem", padding: "1rem", border: "1px solid teal", borderRadius: "8px" }}>
-      <h2>🗳️ Voter Panel</h2>
+    <Container className="my-4">
+      <Card>
+        <Card.Body>
+          <h3 className="mb-3 text-primary">🗳️ Voter Panel</h3>
 
-      <p><strong>Current Phase:</strong> {
-        currentPhase === 0 ? "Registering" :
-        currentPhase === 1 ? "Voting" :
-        currentPhase === 2 ? "Ended" : "Unknown"
-      }</p>
+          <p>
+            <strong>Current Phase:</strong> {getPhaseLabel()}
+          </p>
 
-      {!registered ? (
-        <>
-          <input
-            type="text"
-            placeholder="Enter Your Department"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-          />
-          <button onClick={registerVoter}>Register</button>
-        </>
-      ) : (
-        <p>✅ You are registered under <strong>{department}</strong> department.</p>
-      )}
-    </div>
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          {!registered ? (
+            <>
+              <Form className="d-flex mb-3">
+                <Form.Control
+                  type="text"
+                  placeholder="Enter Your Department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="me-2"
+                />
+                <Button variant="primary" onClick={registerVoter}>
+                  Register
+                </Button>
+              </Form>
+            </>
+          ) : (
+            <Alert variant="success">
+              ✅ You are registered under <strong>{department}</strong> department.
+            </Alert>
+          )}
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 
